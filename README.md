@@ -2,6 +2,8 @@
 
 A full-stack planning and financial modeling app for pre-launch and growing e-commerce businesses.
 
+Last updated: March 2026.
+
 ## About This Application
 
 This application helps e-commerce founders plan their business before launch and track key financial decisions in one place.
