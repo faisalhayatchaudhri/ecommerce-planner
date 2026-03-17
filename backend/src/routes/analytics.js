@@ -67,7 +67,7 @@ router.get('/kpis', async (req, res) => {
   }
 });
 
-// GET /api/analytics/profitability â€” section 7 profitability & break-even
+// GET /api/analytics/profitability - section 7 profitability & break-even
 router.get('/profitability', async (req, res) => {
   try {
     const profileRes = await pool.query(
@@ -186,7 +186,7 @@ router.get('/monthly-trends', async (req, res) => {
   }
 });
 
-// GET /api/analytics/returns â€” section 10 ROI and ROE
+// GET /api/analytics/returns - section 10 ROI and ROE
 router.get('/returns', async (req, res) => {
   try {
     const [profileRes, partnersRes] = await Promise.all([

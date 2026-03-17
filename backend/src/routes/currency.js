@@ -62,8 +62,8 @@ router.get('/convert', async (req, res) => {
   });
 });
 
-// GET /api/currency/taxes — common e-commerce tax rates by region
-router.get('/taxes', authenticate, (req, res) => {
+// GET /api/currency/taxes - common e-commerce tax rates by region
+router.get('/taxes', (req, res) => {
   const taxRates = [
     { region: 'United States', code: 'US', vat_rate: 0, notes: 'State-level sales tax varies (0-12%)' },
     { region: 'European Union', code: 'EU', vat_rate: 0.20, notes: 'Standard VAT 20%, varies by country' },

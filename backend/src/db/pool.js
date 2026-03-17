@@ -50,9 +50,9 @@ function pgToSqlite(sql, pgValues = []) {
   // --- Function translations ---
   // NOW() -> CURRENT_TIMESTAMP (works as DEFAULT and in DML SET clauses)
   out = out.replace(/\bNOW\(\)/gi, 'CURRENT_TIMESTAMP');
-  out = out.replace(/EXTRACT\s*\(\s*YEAR\s+FROM\s+(\w+)\s*\)/gi,
+  out = out.replace(/EXTRACT\s*\(\s*YEAR\s+FROM\s+([A-Za-z_][A-Za-z0-9_.".]*)\s*\)/gi,
     "CAST(strftime('%Y', $1) AS INTEGER)");
-  out = out.replace(/TO_CHAR\s*\(\s*(\w+)\s*,\s*'YYYY-MM'\s*\)/gi,
+  out = out.replace(/TO_CHAR\s*\(\s*([A-Za-z_][A-Za-z0-9_.".]*)\s*,\s*'YYYY-MM'\s*\)/gi,
     "strftime('%Y-%m', $1)");
 
   // --- Parameter placeholders: $1,$2,... -> ? (in order of appearance) ---
@@ -73,13 +73,14 @@ function pgToSqlite(sql, pgValues = []) {
 function injectUUID(sql, values) {
   const colsMatch = sql.match(/INSERT\s+INTO\s+(\w+)\s*\(([^)]+)\)/i);
   if (!colsMatch) return { sql, values };
-  const cols = colsMatch[2].split(',').map(c => c.trim().toLowerCase());
+  const originalColumns = colsMatch[2].trim();
+  const cols = originalColumns.split(',').map(c => c.trim().toLowerCase());
   if (cols.includes('id')) return { sql, values };
 
   const tbl = colsMatch[1];
   const newSQL = sql
     .replace(/INSERT\s+INTO\s+(\w+)\s*\(([^)]+)\)/i,
-      `INSERT INTO ${tbl} (id, $2)`)
+      `INSERT INTO ${tbl} (id, ${originalColumns})`)
     .replace(/VALUES\s*\(/, 'VALUES (?, ');
   return { sql: newSQL, values: [uuidv4(), ...values] };
 }
