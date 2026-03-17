@@ -8,7 +8,9 @@ const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const fs = require('fs');
 
-const DB_DIR = path.join(__dirname, '../../../data');
+const DB_DIR = process.env.VERCEL
+  ? '/tmp/ecommerce-planner'
+  : path.join(__dirname, '../../../data');
 const DB_PATH = path.join(DB_DIR, 'ecommerce.sqlite');
 
 if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
