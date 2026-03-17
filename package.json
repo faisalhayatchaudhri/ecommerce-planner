@@ -1,0 +1,14 @@
+{
+  "name": "ecommerce-planner",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monorepo runner for ecommerce planner frontend and backend",
+  "scripts": {
+    "dev": "node scripts/dev-runner.js",
+    "dev:windows": "start cmd /k \"cd /d backend && npm start\" && start cmd /k \"cd /d frontend && npm start\"",
+    "start:backend": "npm --prefix backend start",
+    "start:frontend": "npm --prefix frontend start",
+    "build:frontend": "npm --prefix frontend run build",
+    "migrate": "npm --prefix backend run migrate"
+  }
+}
