@@ -3,8 +3,8 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 
-function run(name, command, args, cwd) {
-  const child = spawn(command, args, {
+function run(name, command, cwd) {
+  const child = spawn(command, {
     cwd,
     shell: true,
     stdio: 'inherit'
@@ -21,17 +21,19 @@ function run(name, command, args, cwd) {
   return child;
 }
 
-const backend = run(
+function runNpmScript(name, script, cwd) {
+  return run(name, `npm run ${script}`, cwd);
+}
+
+const backend = runNpmScript(
   'backend',
-  'npm',
-  ['start'],
+  'start',
   path.join(root, 'backend')
 );
 
-const frontend = run(
+const frontend = runNpmScript(
   'frontend',
-  'npm',
-  ['start'],
+  'start',
   path.join(root, 'frontend')
 );
 
