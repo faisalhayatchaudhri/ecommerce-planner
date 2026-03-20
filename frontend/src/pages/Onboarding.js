@@ -128,7 +128,7 @@ export default function Onboarding() {
                   {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
                 <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 6 }}>
-                  Auto-selected from country ({form.country} -> {selectedCountryCurrency}).
+                  Auto-selected from country ({form.country} {'->'} {selectedCountryCurrency}).
                 </p>
               </div>
               <div className="field">
