@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import api from '../services/api';
+import { API_BASE_URL } from '../services/api';
 import toast from 'react-hot-toast';
 import { FileText, FileSpreadsheet, Download } from 'lucide-react';
 
@@ -12,7 +12,7 @@ export default function Reports() {
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(
-        `${process.env.REACT_APP_API_URL || '/api'}/reports/${type}?year=${year}`,
+        `${API_BASE_URL}/reports/${type}?year=${year}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (!res.ok) throw new Error('Failed to generate report');
