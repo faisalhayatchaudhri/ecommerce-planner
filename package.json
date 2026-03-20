@@ -4,6 +4,7 @@
   "private": true,
   "description": "Monorepo runner for ecommerce planner frontend and backend",
   "scripts": {
+    "build": "npm --prefix frontend run build",
     "dev": "node scripts/dev-runner.js",
     "dev:windows": "start cmd /k \"cd /d backend && npm start\" && start cmd /k \"cd /d frontend && npm start\"",
     "start:backend": "npm --prefix backend start",
