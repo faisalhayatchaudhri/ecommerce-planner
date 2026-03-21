@@ -3,23 +3,42 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
-const Login = lazy(() => import('./pages/Login'));
-const Register = lazy(() => import('./pages/Register'));
-const Onboarding = lazy(() => import('./pages/Onboarding'));
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const Products = lazy(() => import('./pages/Products'));
-const Forecast = lazy(() => import('./pages/Forecast'));
-const CashFlow = lazy(() => import('./pages/CashFlow'));
-const Partners = lazy(() => import('./pages/Partners'));
-const Analytics = lazy(() => import('./pages/Analytics'));
-const Reports = lazy(() => import('./pages/Reports'));
-const Currency = lazy(() => import('./pages/Currency'));
-const Layout = lazy(() => import('./components/Layout'));
+function lazyWithRetry(importer) {
+  return lazy(() =>
+    importer().catch((error) => {
+      // Recover once from stale/chunk cache mismatch after deploy.
+      const key = 'lazy-retried';
+      try {
+        const alreadyRetried = sessionStorage.getItem(key) === '1';
+        if (!alreadyRetried) {
+          sessionStorage.setItem(key, '1');
+          window.location.reload();
+        }
+      } catch {
+        window.location.reload();
+      }
+      throw error;
+    })
+  );
+}
+
+const Login = lazyWithRetry(() => import('./pages/Login'));
+const Register = lazyWithRetry(() => import('./pages/Register'));
+const Onboarding = lazyWithRetry(() => import('./pages/Onboarding'));
+const Dashboard = lazyWithRetry(() => import('./pages/Dashboard'));
+const Products = lazyWithRetry(() => import('./pages/Products'));
+const Forecast = lazyWithRetry(() => import('./pages/Forecast'));
+const CashFlow = lazyWithRetry(() => import('./pages/CashFlow'));
+const Partners = lazyWithRetry(() => import('./pages/Partners'));
+const Analytics = lazyWithRetry(() => import('./pages/Analytics'));
+const Reports = lazyWithRetry(() => import('./pages/Reports'));
+const Currency = lazyWithRetry(() => import('./pages/Currency'));
+const Layout = lazyWithRetry(() => import('./components/Layout'));
 
 class AppErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, message: '' };
   }
 
   static getDerivedStateFromError() {
@@ -29,6 +48,7 @@ class AppErrorBoundary extends React.Component {
   componentDidCatch(error) {
     // Keeps production from failing silently on white screen.
     console.error('App render error:', error);
+    this.setState({ message: error?.message || 'Unknown runtime error' });
   }
 
   render() {
@@ -38,8 +58,21 @@ class AppErrorBoundary extends React.Component {
           <div className="card" style={{ width: '100%', maxWidth: 520 }}>
             <h2 style={{ marginBottom: '0.5rem' }}>Something went wrong</h2>
             <p style={{ color: '#64748b' }}>
-              The app hit an unexpected error. Refresh the page, or open the browser console for details.
+              The app hit an unexpected error. Refresh the page to retry.
             </p>
+            {this.state.message && (
+              <pre style={{ marginTop: '0.75rem', whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.75rem', color: '#334155' }}>
+                {this.state.message}
+              </pre>
+            )}
+            <button
+              className="btn-primary"
+              style={{ marginTop: '0.75rem' }}
+              onClick={() => window.location.reload()}
+              type="button"
+            >
+              Reload App
+            </button>
           </div>
         </div>
       );

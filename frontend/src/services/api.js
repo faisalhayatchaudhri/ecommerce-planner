@@ -5,6 +5,15 @@ const nodeEnv = typeof globalThis !== 'undefined' && globalThis.process?.env ? g
 
 export const API_BASE_URL = viteEnv.VITE_API_URL || viteEnv.REACT_APP_API_URL || nodeEnv.REACT_APP_API_URL || '/api';
 
+const storage = {
+  get(key) {
+    try { return localStorage.getItem(key); } catch { return null; }
+  },
+  remove(key) {
+    try { localStorage.removeItem(key); } catch {}
+  }
+};
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' }
@@ -12,7 +21,7 @@ const api = axios.create({
 
 // Attach JWT token to every request
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = storage.get('token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -22,8 +31,8 @@ api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      storage.remove('token');
+      storage.remove('user');
       window.location.href = '/login';
     }
     return Promise.reject(err);
