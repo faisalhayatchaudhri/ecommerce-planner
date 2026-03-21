@@ -7,6 +7,7 @@ const Database = require('better-sqlite3');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const fs = require('fs');
+const { schema, alterStatements } = require('./schema');
 
 const DB_DIR = process.env.VERCEL
   ? '/tmp/ecommerce-planner'
@@ -16,6 +17,7 @@ const DB_PATH = path.join(DB_DIR, 'ecommerce.sqlite');
 if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
 
 let _db = null;
+let _schemaInitialized = false;
 
 function getDB() {
   if (!_db) {
@@ -26,6 +28,11 @@ function getDB() {
     _db.function('gen_random_uuid', () => uuidv4());
   }
   return _db;
+}
+
+function shouldIgnoreAlterError(err) {
+  const message = String(err && err.message ? err.message : '').toLowerCase();
+  return message.includes('duplicate column') || message.includes('already exists');
 }
 
 /**
@@ -85,6 +92,24 @@ function injectUUID(sql, values) {
   return { sql: newSQL, values: [uuidv4(), ...values] };
 }
 
+function initializeSchema(db) {
+  if (_schemaInitialized) return;
+
+  const translatedSchema = pgToSqlite(schema, []).sql;
+  db.exec(translatedSchema);
+
+  for (const alter of alterStatements) {
+    try {
+      const translatedAlter = pgToSqlite(alter, []).sql;
+      db.exec(translatedAlter);
+    } catch (err) {
+      if (!shouldIgnoreAlterError(err)) throw err;
+    }
+  }
+
+  _schemaInitialized = true;
+}
+
 /** Decode a SQLite row back to JS-friendly types */
 function decodeRow(row) {
   if (!row) return row;
@@ -102,6 +127,7 @@ function decodeRow(row) {
 const pool = {
   async query(sql, values = []) {
     const db = getDB();
+    initializeSchema(db);
     const upper = sql.trim().toUpperCase();
 
     // Multi-statement DDL (CREATE TABLE, CREATE INDEX, etc.)
