@@ -303,4 +303,133 @@ router.patch(
   }
 );
 
+// PATCH /api/profile/startup-budget
+router.patch(
+  '/startup-budget',
+  [
+    body('startup_initial_stock').optional().isFloat({ min: 0 }),
+    body('startup_website_setup').optional().isFloat({ min: 0 }),
+    body('startup_branding').optional().isFloat({ min: 0 }),
+    body('startup_photography').optional().isFloat({ min: 0 }),
+    body('startup_ads_budget').optional().isFloat({ min: 0 }),
+    body('startup_legal').optional().isFloat({ min: 0 }),
+    body('startup_emergency').optional().isFloat({ min: 0 })
+  ],
+  validate,
+  async (req, res) => {
+    const {
+      startup_initial_stock, startup_website_setup, startup_branding,
+      startup_photography, startup_ads_budget, startup_legal, startup_emergency
+    } = req.body;
+    try {
+      const result = await pool.query(
+        `UPDATE business_profiles SET
+          startup_initial_stock=COALESCE($1, startup_initial_stock),
+          startup_website_setup=COALESCE($2, startup_website_setup),
+          startup_branding=COALESCE($3, startup_branding),
+          startup_photography=COALESCE($4, startup_photography),
+          startup_ads_budget=COALESCE($5, startup_ads_budget),
+          startup_legal=COALESCE($6, startup_legal),
+          startup_emergency=COALESCE($7, startup_emergency),
+          updated_at=NOW()
+         WHERE user_id=$8 RETURNING *`,
+        [startup_initial_stock, startup_website_setup, startup_branding, startup_photography, startup_ads_budget, startup_legal, startup_emergency, req.userId]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(400).json({ error: 'Create your business profile first in onboarding.' });
+      }
+
+      res.json({ profile: result.rows[0] });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Failed to save startup budget settings' });
+    }
+  }
+);
+
+// PATCH /api/profile/cod-rates
+router.patch(
+  '/cod-rates',
+  [
+    body('cod_order_pct').optional().isFloat({ min: 0, max: 1 }),
+    body('rto_pct').optional().isFloat({ min: 0, max: 1 }),
+    body('courier_cod_fee_pct').optional().isFloat({ min: 0, max: 1 })
+  ],
+  validate,
+  async (req, res) => {
+    const { cod_order_pct, rto_pct, courier_cod_fee_pct } = req.body;
+    try {
+      const result = await pool.query(
+        `UPDATE business_profiles SET
+          cod_order_pct=COALESCE($1, cod_order_pct),
+          rto_pct=COALESCE($2, rto_pct),
+          courier_cod_fee_pct=COALESCE($3, courier_cod_fee_pct),
+          updated_at=NOW()
+         WHERE user_id=$4 RETURNING *`,
+        [cod_order_pct, rto_pct, courier_cod_fee_pct, req.userId]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(400).json({ error: 'Create your business profile first in onboarding.' });
+      }
+
+      res.json({ profile: result.rows[0] });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Failed to save COD rates' });
+    }
+  }
+);
+
+// PATCH /api/profile/beginner-wizard
+router.patch(
+  '/beginner-wizard',
+  [
+    body('beginner_mode_completed').isBoolean()
+  ],
+  validate,
+  async (req, res) => {
+    try {
+      const result = await pool.query(
+        `UPDATE business_profiles SET beginner_mode_completed=$1, updated_at=NOW() WHERE user_id=$2 RETURNING *`,
+        [req.body.beginner_mode_completed, req.userId]
+      );
+      if (result.rows.length === 0) {
+        return res.status(400).json({ error: 'Create your business profile first in onboarding.' });
+      }
+      res.json({ profile: result.rows[0] });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Failed to save beginner wizard status' });
+    }
+  }
+);
+
+// PATCH /api/profile/goals
+router.patch(
+  '/goals',
+  [
+    body('target_monthly_income').optional().isFloat({ min: 0 }),
+    body('target_profit_margin').optional().isFloat({ min: 0, max: 1 })
+  ],
+  validate,
+  async (req, res) => {
+    try {
+      const result = await pool.query(
+        `UPDATE business_profiles SET
+          target_monthly_income=COALESCE($1, target_monthly_income),
+          target_profit_margin=COALESCE($2, target_profit_margin),
+          updated_at=NOW()
+         WHERE user_id=$3 RETURNING *`,
+        [req.body.target_monthly_income, req.body.target_profit_margin, req.userId]
+      );
+      if (result.rows.length === 0) return res.status(400).json({ error: 'Profile not found.' });
+      res.json({ profile: result.rows[0] });
+    } catch (err) {
+      res.status(500).json({ error: 'Failed to save goals target' });
+    }
+  }
+);
+
 module.exports = router;

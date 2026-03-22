@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { Plus, Trash2, TrendingUp, Package } from 'lucide-react';
+import { useCurrencyCtx } from '../context/CurrencyContext';
 
 const CATEGORIES = ['Clothing', 'Electronics', 'Beauty', 'Home & Garden', 'Sports', 'Food & Beverage', 'Books', 'Toys', 'Jewelry', 'Other'];
 
@@ -102,6 +103,7 @@ function ProductModal({ onClose, onSaved, product }) {
 }
 
 export default function Products() {
+  const { fmtDec } = useCurrencyCtx();
   const [products, setProducts] = useState([]);
   const [planner, setPlanner] = useState({
     planned_products_count: 0,
@@ -227,15 +229,15 @@ export default function Products() {
         <div className="grid-4" style={{ marginTop: '0.75rem', marginBottom: '0.9rem' }}>
           <div className="kpi-card">
             <p style={{ fontSize: '0.78rem', color: '#64748b' }}>Planned Catalog Revenue</p>
-            <p style={{ fontSize: '1.2rem', fontWeight: 700 }}>${plannerRevenue.toFixed(2)}</p>
+            <p style={{ fontSize: '1.2rem', fontWeight: 700, color: '#f1f5f9' }}>{fmtDec(plannerRevenue)}</p>
           </div>
           <div className="kpi-card">
             <p style={{ fontSize: '0.78rem', color: '#64748b' }}>Planned Catalog COGS</p>
-            <p style={{ fontSize: '1.2rem', fontWeight: 700 }}>${plannerCost.toFixed(2)}</p>
+            <p style={{ fontSize: '1.2rem', fontWeight: 700, color: '#f1f5f9' }}>{fmtDec(plannerCost)}</p>
           </div>
           <div className="kpi-card">
             <p style={{ fontSize: '0.78rem', color: '#64748b' }}>Planned Gross Profit</p>
-            <p style={{ fontSize: '1.2rem', fontWeight: 700 }}>${plannerGrossProfit.toFixed(2)}</p>
+            <p style={{ fontSize: '1.2rem', fontWeight: 700, color: plannerGrossProfit >= 0 ? '#34d399' : '#f87171' }}>{fmtDec(plannerGrossProfit)}</p>
           </div>
           <div className="kpi-card">
             <p style={{ fontSize: '0.78rem', color: '#64748b' }}>Planned Gross Margin</p>
@@ -262,14 +264,14 @@ export default function Products() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <p style={{ fontSize: '0.78rem', color: '#64748b' }}>Catalog ASP</p>
-                <p style={{ fontSize: '1.25rem', fontWeight: 800 }}>${avgAsp.toFixed(2)}</p>
+                <p style={{ fontSize: '1.25rem', fontWeight: 800, color: '#f1f5f9' }}>{fmtDec(avgAsp)}</p>
               </div>
               <TrendingUp size={18} color="#10b981" />
             </div>
           </div>
           <div className="kpi-card">
             <p style={{ fontSize: '0.78rem', color: '#64748b' }}>Catalog Avg COGS</p>
-            <p style={{ fontSize: '1.25rem', fontWeight: 800 }}>${avgCogs.toFixed(2)}</p>
+            <p style={{ fontSize: '1.25rem', fontWeight: 800, color: '#f1f5f9' }}>{fmtDec(avgCogs)}</p>
           </div>
           <div className="kpi-card">
             <p style={{ fontSize: '0.78rem', color: '#64748b' }}>Categories Used</p>
@@ -314,14 +316,14 @@ export default function Products() {
                     <div style={{ fontSize: '0.78rem', color: '#64748b' }}>{p.description}</div>
                   </td>
                   <td><span className="badge badge-blue">{p.category}</span></td>
-                  <td style={{ fontWeight: 600 }}>${parseFloat(p.selling_price).toFixed(2)}</td>
-                  <td>${parseFloat(p.cogs).toFixed(2)}</td>
+                  <td style={{ fontWeight: 600, color: '#f1f5f9' }}>{fmtDec(p.selling_price)}</td>
+                  <td>{fmtDec(p.cogs)}</td>
                   <td>
                     <span className={`badge ${parseFloat(marginPct(p)) > 30 ? 'badge-green' : parseFloat(marginPct(p)) > 15 ? 'badge-yellow' : 'badge-red'}`}>
                       {marginPct(p)}%
                     </span>
                   </td>
-                  <td>${parseFloat(p.shipping_cost_local).toFixed(2)}</td>
+                  <td>{fmtDec(p.shipping_cost_local)}</td>
                   <td>{(parseFloat(p.platform_fee_pct) * 100).toFixed(1)}%</td>
                   <td>
                     <span className={`badge ${p.is_active ? 'badge-green' : 'badge-red'}`}>

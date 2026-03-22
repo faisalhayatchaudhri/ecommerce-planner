@@ -127,7 +127,23 @@ const alterStatements = [
   'ALTER TABLE business_profiles ADD COLUMN cash_injection_months INTEGER DEFAULT 0',
   'ALTER TABLE business_profiles ADD COLUMN projected_monthly_growth_rate DECIMAL(5,4) DEFAULT 0',
   'ALTER TABLE business_profiles ADD COLUMN future_product_launches_year1 INTEGER DEFAULT 0',
-  'ALTER TABLE partners ADD COLUMN profit_share_pct DECIMAL(5,4) DEFAULT 0'
+  'ALTER TABLE business_profiles ADD COLUMN startup_initial_stock DECIMAL(12,2) DEFAULT 0',
+  'ALTER TABLE business_profiles ADD COLUMN startup_website_setup DECIMAL(12,2) DEFAULT 0',
+  'ALTER TABLE business_profiles ADD COLUMN startup_branding DECIMAL(12,2) DEFAULT 0',
+  'ALTER TABLE business_profiles ADD COLUMN startup_photography DECIMAL(12,2) DEFAULT 0',
+  'ALTER TABLE business_profiles ADD COLUMN startup_ads_budget DECIMAL(12,2) DEFAULT 0',
+  'ALTER TABLE business_profiles ADD COLUMN startup_legal DECIMAL(12,2) DEFAULT 0',
+  'ALTER TABLE business_profiles ADD COLUMN startup_emergency DECIMAL(12,2) DEFAULT 0',
+  'ALTER TABLE business_profiles ADD COLUMN cod_order_pct DECIMAL(5,4) DEFAULT 0',
+  'ALTER TABLE business_profiles ADD COLUMN rto_pct DECIMAL(5,4) DEFAULT 0',
+  'ALTER TABLE business_profiles ADD COLUMN courier_cod_fee_pct DECIMAL(5,4) DEFAULT 0',
+  'ALTER TABLE business_profiles ADD COLUMN cpc DECIMAL(12,2) DEFAULT 0',
+  'ALTER TABLE business_profiles ADD COLUMN target_monthly_income DECIMAL(12,2) DEFAULT 0',
+  'ALTER TABLE business_profiles ADD COLUMN target_profit_margin DECIMAL(5,4) DEFAULT 0',
+  'ALTER TABLE business_profiles ADD COLUMN beginner_mode_completed BOOLEAN DEFAULT FALSE',
+  'ALTER TABLE partners ADD COLUMN profit_share_pct DECIMAL(5,4) DEFAULT 0',
+  'ALTER TABLE products ADD COLUMN packaging_cost DECIMAL(12,2) DEFAULT 0',
+  'ALTER TABLE products ADD COLUMN ad_cost_per_order DECIMAL(12,2) DEFAULT 0'
 ];
 
 module.exports = { schema, alterStatements };
