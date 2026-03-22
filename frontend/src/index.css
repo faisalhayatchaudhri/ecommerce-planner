@@ -484,6 +484,92 @@ tr:hover td { background: rgba(99,102,241,0.06); }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
-/* ── Progress bar ── */
+/* ── Progress bar (in-card) ── */
 .progress-bar-outer { background: var(--border); border-radius: 99px; height: 8px; overflow: hidden; }
 .progress-bar-inner { height: 100%; border-radius: 99px; transition: width 0.6s ease; }
+
+/* ══════════════════════════════════════
+   TOP PAGE LOADER BAR  (YouTube/Vercel style)
+══════════════════════════════════════ */
+.top-loader {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  z-index: 9999;
+  pointer-events: none;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6, #06b6d4);
+  box-shadow: 0 0 12px rgba(99,102,241,0.9), 0 0 24px rgba(99,102,241,0.5);
+  transition: width 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.4s ease;
+}
+
+/* Shimmer travelling on top of the bar */
+.top-loader::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 120px; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+  animation: loaderShimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes loaderShimmer {
+  0%   { transform: translateX(-120px); opacity: 0; }
+  40%  { opacity: 1; }
+  100% { transform: translateX(40px);  opacity: 0; }
+}
+
+/* Glow dot at the leading edge */
+.top-loader-dot {
+  position: fixed;
+  top: -1px;
+  z-index: 9999;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #a5b4fc;
+  box-shadow: 0 0 10px 3px #6366f1, 0 0 20px 6px rgba(99,102,241,0.6);
+  pointer-events: none;
+  transition: left 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.4s ease;
+  transform: translateY(50%) translateX(-50%);
+}
+
+/* ══════════════════════════════════════
+   PAGE CONTENT — Fade + Slide transition
+══════════════════════════════════════ */
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+.page-transition-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 280ms cubic-bezier(0.4,0,0.2,1),
+              transform 280ms cubic-bezier(0.4,0,0.2,1);
+}
+
+/* Applied directly inside Outlet wrapper */
+.page-fade {
+  animation: pageFadeIn 280ms cubic-bezier(0.4,0,0.2,1) both;
+}
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ══════════════════════════════════════
+   SKELETON LOADING
+══════════════════════════════════════ */
+.skeleton {
+  border-radius: 8px;
+  background: linear-gradient(90deg, #1e293b 25%, #263147 50%, #1e293b 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+.skeleton-text  { height: 14px; margin-bottom: 8px; border-radius: 6px; }
+.skeleton-title { height: 24px; margin-bottom: 12px; border-radius: 8px; }
+.skeleton-card  { height: 110px; border-radius: 14px; }
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

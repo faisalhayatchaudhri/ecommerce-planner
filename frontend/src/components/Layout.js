@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import TopLoader from './TopLoader';
 import {
   LayoutDashboard, Package, TrendingUp, DollarSign,
   Users, BarChart3, FileText, Globe, LogOut,
@@ -81,6 +82,9 @@ export default function Layout() {
 
   return (
     <div className="app-shell">
+      {/* ── Top route-change progress bar ── */}
+      <TopLoader />
+
       {isMobile && sidebarOpen && (
         <div onClick={() => setSidebarOpen(false)} className="app-overlay" />
       )}
@@ -164,7 +168,10 @@ export default function Layout() {
         </header>
 
         <main className="app-content">
-          <Outlet />
+          {/* key=pathname remounts this div on every route → re-triggers pageFadeIn */}
+          <div key={location.pathname} className="page-fade">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
