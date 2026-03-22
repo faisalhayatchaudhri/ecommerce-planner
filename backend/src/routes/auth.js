@@ -35,7 +35,7 @@ router.post(
       res.status(201).json({ token, user });
     } catch (err) {
       console.error(err);
-      res.status(500).json({ error: 'Registration failed' });
+      res.status(500).json({ error: 'Registration failed: ' + err.message });
     }
   }
 );
@@ -67,7 +67,7 @@ router.post(
       res.json({ token, user: safeUser });
     } catch (err) {
       console.error(err);
-      res.status(500).json({ error: 'Login failed' });
+      res.status(500).json({ error: 'Login failed: ' + err.message });
     }
   }
 );
