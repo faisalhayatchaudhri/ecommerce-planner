@@ -4,7 +4,6 @@
  * Uses local `better-sqlite3` and SQL translation if disabled (Local Dev).
  */
 const { Pool } = require('pg');
-const Database = require('better-sqlite3');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const fs = require('fs');
@@ -34,6 +33,7 @@ let _schemaInitialized = false;
 
 function getDbSQLite() {
   if (!_db) {
+    const Database = require('better-sqlite3');
     if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
     _db = new Database(DB_PATH);
     _db.pragma('journal_mode = WAL');
