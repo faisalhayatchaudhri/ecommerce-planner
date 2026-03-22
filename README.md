@@ -1,257 +1,159 @@
-# E-commerce Business Planner Tool
+# ⚡ EcomPlanner: Advanced E-commerce Business Suite
 
-A full-stack planning and financial modeling app for pre-launch and growing e-commerce businesses.
+A full-stack, premium planning and financial modeling application for pre-launch and growing e-commerce businesses.
 
 Last updated: March 2026.
 
-## About This Application
+## 🌟 About This Application
 
-This application helps e-commerce founders plan their business before launch and track key financial decisions in one place.
-It combines operational planning with finance tools, so users can:
+**EcomPlanner** helps e-commerce founders plan their business before launch and track key financial decisions in one centralized command center. 
 
-- define business profile, market, and tax setup,
-- manage products with pricing, costs, and margin visibility,
-- project sales, break-even points, and 12-month growth,
-- model cash flow, investment injections, and partner distributions,
-- monitor KPIs and export reports (PDF, Excel, CSV) for analysis and sharing.
+Recently overhauled to feature a stunning **Premium Dark-Mode UI**, the application embraces a **"Beginner to Advanced"** philosophy. New users can simply walk through 7 guided calculators to validate their business idea, while experienced operators can dive straight into complex 12-month forecasting, cash flow modeling, and partner equity distributions.
 
-In short, it is a practical business-planning dashboard for testing whether an e-commerce model is viable and how profitable it can become.
+---
 
-## What Is Implemented
+## 🚀 The Beginner Toolkit (New!)
 
-### Section-by-section planner
+We've added 7 standalone sandbox tools designed specifically for first-time founders to test the waters:
 
-1. Business Profile Setup
-- Business name, business type, country, currency (country-driven defaults), tax region.
+1. **Start Here (Business Wizard):** Create an entire baseline business plan in 2 minutes.
+2. **Profit Per Order:** If you sell exactly 1 unit, how much profit do you actually pocket after shipping, packaging, and ads?
+3. **Pricing Tool:** Work backward from your target profit margin to find the exact selling price you should charge.
+4. **Startup Budget:** Calculate the exact capital required to launch (stock, website, legal, emergency reserves).
+5. **Ads Calculator:** Forecast Cost Per Click (CPC), acquisition costs (CPA), and Return on Ad Spend (ROAS).
+6. **COD & Returns:** See the devastating impact of failed deliveries (RTOs) on your margins — crucial for markets like Pakistan and India.
+7. **Goal Planner:** Working backward from an income goal to tell you exactly how many website visitors and orders you need daily.
 
-2. Product Information
-- Product catalog (category, ASP/selling price, COGS, shipping, platform fee).
-- Product planner: initial product count, planned ASP, planned COGS.
+---
 
-3. Operational Costs Setup
-- Monthly platform cost, hosting/dev cost, marketing budget, gateway fee percent.
+## 📊 Advanced Modules (For Operating Businesses)
 
-4. Sales Forecasting
-- Monthly sales target, traffic forecast, conversion rate, expected ASP.
-- Revenue/units auto-calculations.
+Once your baseline is established, scale up using the advanced command center:
 
-5. Tax & Legal Considerations
-- Sales tax rate, import duties percent, VAT/GST rate.
-- Tax impact estimator.
+- **Dashboard:** Features a live "Business Health Score" (0-100), setup checklist, and dynamic KPI cards.
+- **Product Catalog:** Manage COGS, selling prices, and live margin status (green/yellow/red indicators).
+- **Sales Forecast:** Project 12-month revenue growth based on unit targets, expected traffic, and new product launches.
+- **Cash Flow Management:** Track real operating inflows, outflows, and model capital injections to avoid going bankrupt.
+- **Partners & Equity:** Manage investor equity %, profit-sharing distributions, and track Return on Equity (ROE).
+- **Deep Analytics:** Visualize revenue vs. cost trends, product performance breakdowns, and break-even points via Chart.js.
+- **Global Currency System:** Currency symbols and formatting automatically adapt across the entire app based on your profile selection.
+- **Export Reports:** Generate professional PDF, Excel, and CSV reports for investors or banks.
 
-6. Partner/Investor Setup
-- Partner equity %, profit-sharing %, capital invested.
-- Distribution calculator based on net profit.
+---
 
-7. Profit Margin & Break-Even
-- Gross margin, net margin, fixed costs.
-- Break-even units/revenue via:
-  - Gross Profit Margin = (Revenue - COGS) / Revenue
-  - Break-Even Units = Fixed Costs / Gross Profit per Unit
+## 🛠️ Tech Stack
 
-8. Cash Flow Management
-- Initial investment, monthly cash injection, injection duration.
-- Operating inflow/outflow/net cash-flow projection.
+- **Frontend:** React 18, React Router v6, Chart.js, Lucide Icons, Vanilla CSS (Premium Dark Mode)
+- **Backend:** Node.js, Express.js
+- **Database:** PostgreSQL (via `pg` and schema migrations)
+- **Auth:** JWT + bcrypt
+- **Security:** Helmet, express-rate-limit, request validation
 
-9. Scalability Projections
-- Monthly growth rate and future product launches (year 1).
-- 12-month projected units/traffic/revenue with chart + table.
+---
 
-10. ROI & Investment Returns
-- Business ROI and partner ROE:
-  - ROI = (Net Profit / Total Investment) x 100
-  - ROE = Partner Profit Share / Partner Capital Invested
-
-## Tech Stack
-
-- Frontend: React 18, React Router 6, Chart.js
-- Backend: Node.js, Express
-- Database: SQLite (via better-sqlite3 adapter that provides a pg-like query interface)
-- Auth: JWT + bcrypt
-- Reports: ExcelJS, PDFKit, CSV
-- Security: Helmet, express-rate-limit, request validation
-
-## Quick Start
+## ⚡ Quick Start
 
 ### Prerequisites
 - Node.js 18+
+- PostgreSQL database
 
 ### 1. Install dependencies
 
 ```bash
-# backend
+# Backend
 cd backend
 npm install
 
-# frontend
+# Frontend
 cd ../frontend
 npm install
 ```
 
 ### 2. Configure environment
 
-```bash
-cd backend
-cp .env.example .env
-# Set JWT_SECRET and optional currency API key
+Create `.env` files in both backend and frontend directories using provided `.env.example` templates.
+
+**Backend `.env`:**
+```env
+PORT=5000
+NODE_ENV=development
+DB_USER=postgres
+DB_HOST=localhost
+DB_NAME=ecommerce_planner
+DB_PASSWORD=yourpassword
+DB_PORT=5432
+JWT_SECRET=supersecretjwtkey
+FRONTEND_URL=http://localhost:3000
 ```
 
-```bash
-cd ../frontend
-cp .env.example .env
+**Frontend `.env`:**
+```env
+REACT_APP_API_URL=http://localhost:5000/api
 ```
 
-### 3. Run migrations
+### 3. Run database migrations
 
 ```bash
 cd backend
 npm run migrate
 ```
 
-### 4. Start backend
+### 4. Start the Application
 
+**Run Backend:**
 ```bash
 cd backend
 npm run dev
-# or npm start
 ```
 
-Backend: `http://localhost:5000`
-
-### 5. Start frontend
-
+**Run Frontend:**
 ```bash
 cd frontend
 npm start
 ```
 
-Frontend: `http://localhost:3000`
+Access the app at: `http://localhost:3000`
 
-## Environment Variables
+---
 
-### Backend (`backend/.env`)
+## 🔒 Security & Architecture
 
-| Variable | Description | Default |
-|---|---|---|
-| `PORT` | Server port | `5000` |
-| `NODE_ENV` | Runtime mode | `development` |
-| `JWT_SECRET` | JWT signing secret | required |
-| `JWT_EXPIRES_IN` | Token expiry | `7d` |
-| `CURRENCY_API_KEY` | CurrencyLayer API key (optional) | empty/fallback |
-| `CURRENCY_API_URL` | Currency API base URL | `http://apilayer.net/api` |
-| `FRONTEND_URL` | Allowed CORS origin | `http://localhost:3000` |
+- Password hashing with `bcrypt` (12 rounds)
+- JWT-protected private API routes
+- Rate limiting on all `/api/*` endpoints
+- Input sanitization via `express-validator`
+- Global React Context for authentication routing and dynamic currency formatting
 
-Note: `DB_*` fields still exist in `.env.example` for compatibility, but current runtime storage is SQLite in `data/ecommerce.sqlite`.
+---
 
-### Frontend (`frontend/.env`)
-
-| Variable | Description | Default |
-|---|---|---|
-| `REACT_APP_API_URL` | Backend API base URL | `/api` |
-
-## API Endpoints
-
-### Auth
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `GET /api/auth/me`
-
-### Profile
-- `GET /api/profile`
-- `POST /api/profile`
-- `PATCH /api/profile/planner`
-- `PATCH /api/profile/operational-costs`
-- `PATCH /api/profile/sales-forecast`
-- `PATCH /api/profile/tax-legal`
-- `PATCH /api/profile/cashflow-plan`
-- `PATCH /api/profile/scalability`
-
-### Products
-- `GET /api/products`
-- `POST /api/products`
-- `PUT /api/products/:id`
-- `DELETE /api/products/:id`
-- `GET /api/products/:id/margin`
-
-### Forecast
-- `GET /api/forecast`
-- `POST /api/forecast`
-- `POST /api/forecast/simulate`
-- `GET /api/forecast/breakeven`
-
-### Cash Flow
-- `GET /api/cashflow`
-- `POST /api/cashflow`
-- `DELETE /api/cashflow/:id`
-- `GET /api/cashflow/summary`
-- `POST /api/cashflow/inject`
-
-### Partners
-- `GET /api/partners`
-- `POST /api/partners`
-- `DELETE /api/partners/:id`
-- `GET /api/partners/distribution`
-
-### Analytics
-- `GET /api/analytics/kpis`
-- `GET /api/analytics/profitability`
-- `GET /api/analytics/returns`
-- `GET /api/analytics/monthly-trends`
-- `GET /api/analytics/product-performance`
-
-### Reports
-- `GET /api/reports/excel`
-- `GET /api/reports/pdf`
-- `GET /api/reports/csv`
-
-### Currency
-- `GET /api/currency/rates`
-- `GET /api/currency/convert`
-- `GET /api/currency/taxes`
-
-## Security
-
-- Password hashing with bcrypt (12 rounds)
-- JWT-protected private routes
-- Rate limiting on `/api/*`
-- Input validation on write routes
-- Helmet security headers
-- CORS restricted by `FRONTEND_URL`
-
-## Project Structure
+## 📂 Project Structure Snapshot
 
 ```text
 ecommerce-planner/
   backend/
     src/
-      app.js
-      server.js
       db/
-        pool.js
-        migrate.js
-      middleware/
-        auth.js
-        validate.js
+        index.js          # PostgreSQL pool setup
+        migrate.js        # Table creation & migrations
       routes/
-        auth.js
-        profile.js
-        products.js
-        forecast.js
-        cashflow.js
-        partners.js
-        analytics.js
-        reports.js
-        currency.js
+        auth.js           # JWT issuing
+        profile.js        # Business profile & global currency
+        products.js       # Catalog CRUD
+        forecast.js       # 12-mo projections
+        cashflow.js       # Cash flow logs
+        analytics.js      # Aggregation & KPIs
   frontend/
     src/
+      context/
+        AuthContext.js    # JWT state
+        CurrencyContext.js # Global symbol & formatting
       pages/
-        Onboarding.js
-        Dashboard.js
-        Products.js
-        Forecast.js
-        CashFlow.js
-        Partners.js
-        Analytics.js
-        Currency.js
-        Reports.js
+        Dashboard.js      # Command center
+        calculators/      # 7 Beginner Sandbox tools
+          BeginnerWizard.js
+          ProfitPerOrder.js
+          PricingTool.js
+          ...
+        Analytics.js      # Charts
+        Products.js       # Data tables
 ```
