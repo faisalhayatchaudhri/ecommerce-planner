@@ -4,31 +4,52 @@ import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Package, TrendingUp, DollarSign,
   Users, BarChart3, FileText, Globe, LogOut,
-  Menu, X, ChevronRight, Sparkles, Calculator, Zap
+  Menu, X, ChevronRight, Sparkles, Zap, Target,
+  ShoppingCart, Tag, Star, Rocket
 } from 'lucide-react';
 
-const MAIN_NAV = [
-  { path: '/dashboard',  label: 'Dashboard',     icon: LayoutDashboard },
-  { path: '/products',   label: 'Products',      icon: Package },
-  { path: '/forecast',   label: 'Forecast',      icon: TrendingUp },
-  { path: '/cashflow',   label: 'Cash Flow',     icon: DollarSign },
-  { path: '/partners',   label: 'Partners',      icon: Users },
-  { path: '/analytics',  label: 'Analytics',     icon: BarChart3 },
-  { path: '/reports',    label: 'Reports',       icon: FileText },
-  { path: '/currency',   label: 'Currency & Tax',icon: Globe },
+/*
+  NAV ORDER PHILOSOPHY — Beginner → Advanced:
+  1. Start Here (Wizard)          ← "What is my idea worth?"
+  2. Profit / Order               ← "If I sell 1 unit, what do I earn?"
+  3. Pricing Tool                 ← "What price should I charge?"
+  4. Startup Budget               ← "How much do I need to start?"
+  5. Ads Calculator               ← "Will my ads make money?"
+  6. COD & Returns                ← "How do failed deliveries hurt me?"
+  7. Goal Planner                 ← "How many sales to hit my target?"
+  ─── advanced divider ───
+  8. Dashboard                    ← Full business overview
+  9. Products                     ← Detailed product catalog
+  10. Sales Forecast              ← Project revenue
+  11. Cash Flow                   ← Real cash in/out
+  12. Partners                    ← Equity & investors
+  13. Analytics                   ← Charts & KPIs
+  14. Reports                     ← Export
+  15. Currency & Tax              ← Settings
+*/
+
+const BEGINNER_NAV = [
+  { path: '/beginner-wizard',              label: 'Start Here',      icon: Sparkles,     badge: 'NEW', desc: 'Set up your business' },
+  { path: '/calculators/profit-per-order', label: 'Profit / Order',  icon: ShoppingCart, desc: '1 sale = how much profit?' },
+  { path: '/calculators/pricing',          label: 'Pricing Tool',    icon: Tag,          desc: 'What price should I charge?' },
+  { path: '/calculators/startup-budget',   label: 'Startup Budget',  icon: Rocket,       desc: 'Capital to get started' },
+  { path: '/calculators/ads',              label: 'Ads Calculator',  icon: Zap,          desc: 'Will ads make profit?' },
+  { path: '/calculators/cod',              label: 'COD & Returns',   icon: Package,      desc: 'Impact of failed deliveries' },
+  { path: '/calculators/goals',            label: 'Goal Planner',    icon: Target,       desc: 'Orders needed to hit income goal' },
 ];
 
-const CALC_NAV = [
-  { path: '/beginner-wizard',           label: 'Start Here',    icon: Sparkles, isNew: true },
-  { path: '/calculators/profit-per-order', label: 'Profit/Order', icon: Calculator },
-  { path: '/calculators/startup-budget', label: 'Startup Budget',  icon: DollarSign },
-  { path: '/calculators/ads',           label: 'Ads Math',      icon: Zap },
-  { path: '/calculators/cod',           label: 'COD & Returns', icon: TrendingUp },
-  { path: '/calculators/pricing',       label: 'Pricing Tool',  icon: BarChart3 },
-  { path: '/calculators/goals',         label: 'Goal Planner',  icon: Package },
+const ADVANCED_NAV = [
+  { path: '/dashboard',  label: 'Dashboard',      icon: LayoutDashboard },
+  { path: '/products',   label: 'Products',        icon: Star },
+  { path: '/forecast',   label: 'Sales Forecast',  icon: TrendingUp },
+  { path: '/cashflow',   label: 'Cash Flow',        icon: DollarSign },
+  { path: '/partners',   label: 'Partners',         icon: Users },
+  { path: '/analytics',  label: 'Analytics',        icon: BarChart3 },
+  { path: '/reports',    label: 'Reports',          icon: FileText },
+  { path: '/currency',   label: 'Currency & Tax',   icon: Globe },
 ];
 
-const ALL_NAV = [...MAIN_NAV, ...CALC_NAV];
+const ALL_NAV = [...BEGINNER_NAV, ...ADVANCED_NAV];
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -53,7 +74,7 @@ export default function Layout() {
   const breadcrumbs = useMemo(() => {
     const parts = location.pathname.split('/').filter(Boolean);
     if (parts.length === 0) return ['Dashboard'];
-    return ['Home', ...parts.map(part => part.replace(/-/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase()))];
+    return parts.map(part => part.replace(/-/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase()));
   }, [location.pathname]);
 
   const handleLogout = () => { logout(); navigate('/login'); };
@@ -65,6 +86,7 @@ export default function Layout() {
       )}
 
       <aside className={`app-sidebar ${isMobile ? 'mobile' : ''} ${sidebarOpen ? 'open' : ''}`}>
+        {/* Brand */}
         <div className="sidebar-brand">
           <div className="sidebar-logo">
             <div className="sidebar-logo-icon">⚡</div>
@@ -77,39 +99,50 @@ export default function Layout() {
         </div>
 
         <nav className="sidebar-nav">
-          <div className="sidebar-section-label">Main</div>
-          {MAIN_NAV.map(({ path, label, icon: Icon }) => (
+
+          {/* ── BEGINNER TOOLS FIRST ── */}
+          <div className="sidebar-section-label" style={{ color: '#818cf8' }}>
+            🚀 Get Started
+          </div>
+
+          {BEGINNER_NAV.map(({ path, label, icon: Icon, badge }) => (
             <NavLink
               key={path} to={path}
               onClick={() => setSidebarOpen(false)}
               className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
             >
-              <Icon size={16} />
+              <Icon size={15} />
+              <span style={{ flex: 1 }}>{label}</span>
+              {badge && <span className="sidebar-badge">{badge}</span>}
+            </NavLink>
+          ))}
+
+          {/* ── ADVANCED TOOLS ── */}
+          <div className="sidebar-section-label" style={{ marginTop: '1rem' }}>
+            📊 Advanced
+          </div>
+
+          {ADVANCED_NAV.map(({ path, label, icon: Icon }) => (
+            <NavLink
+              key={path} to={path}
+              onClick={() => setSidebarOpen(false)}
+              className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+            >
+              <Icon size={15} />
               {label}
             </NavLink>
           ))}
 
-          <div className="sidebar-section-label" style={{ marginTop: '0.5rem' }}>Beginner Tools</div>
-          {CALC_NAV.map(({ path, label, icon: Icon, isNew }) => (
-            <NavLink
-              key={path} to={path}
-              onClick={() => setSidebarOpen(false)}
-              className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
-            >
-              <Icon size={16} />
-              {label}
-              {isNew && <span className="sidebar-badge">NEW</span>}
-            </NavLink>
-          ))}
         </nav>
 
         <div className="sidebar-footer">
-          <button onClick={handleLogout} className="sidebar-link sidebar-logout">
+          <button onClick={handleLogout} className="sidebar-link sidebar-logout" style={{ width: '100%', justifyContent: 'flex-start' }}>
             <LogOut size={15} /> Sign Out
           </button>
         </div>
       </aside>
 
+      {/* Main content */}
       <div className="app-main">
         <header className="app-header">
           <button onClick={() => setSidebarOpen(!sidebarOpen)} className="menu-btn" aria-label="Toggle menu">
@@ -119,14 +152,14 @@ export default function Layout() {
             <div className="breadcrumb-row" aria-label="Breadcrumb">
               {breadcrumbs.map((crumb, index) => (
                 <React.Fragment key={`${crumb}-${index}`}>
-                  {index > 0 && <ChevronRight size={12} className="breadcrumb-sep" />}
+                  {index > 0 && <ChevronRight size={11} className="breadcrumb-sep" />}
                   <span className={`breadcrumb-item ${index === breadcrumbs.length - 1 ? 'active' : ''}`}>
                     {crumb}
                   </span>
                 </React.Fragment>
               ))}
             </div>
-            <h1 className="header-title">{currentLabel}</h1>
+            <p className="header-title">{currentLabel}</p>
           </div>
         </header>
 
