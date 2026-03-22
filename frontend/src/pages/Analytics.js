@@ -73,7 +73,7 @@ export default function Analytics() {
     }]
   } : null;
 
-  if (loading) return <div style={{ color: '#64748b' }}>Loading analytics...</div>;
+  if (loading) return <div className="spinner-container"><div className="spinner"></div><div className="spinner-text">Loading analytics...</div></div>;
 
   return (
     <div>

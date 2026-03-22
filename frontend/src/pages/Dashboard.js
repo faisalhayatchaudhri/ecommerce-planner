@@ -38,7 +38,7 @@ export default function Dashboard() {
 
   const fmt = (n) => `$${(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-  if (loading) return <div style={{ padding: '2rem', color: '#6c757d' }}>Loading dashboard...</div>;
+  if (loading) return <div className="spinner-container"><div className="spinner"></div><div className="spinner-text">Loading dashboard...</div></div>;
 
   return (
     <div>

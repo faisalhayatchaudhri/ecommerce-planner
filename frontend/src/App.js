@@ -84,7 +84,7 @@ class AppErrorBoundary extends React.Component {
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
-  if (loading) return <div className="flex items-center justify-center h-screen"><p>Loading...</p></div>;
+  if (loading) return <div className="spinner-container"><div className="spinner"></div><div className="spinner-text">Authenticating...</div></div>;
   if (!user) return <Navigate to="/login" replace />;
   return children;
 }
@@ -92,7 +92,7 @@ function ProtectedRoute({ children }) {
 function AppRoutes() {
   const { user } = useAuth();
   return (
-    <Suspense fallback={<div style={{ padding: '1.5rem', color: '#64748b' }}>Loading...</div>}>
+    <Suspense fallback={<div className="spinner-container"><div className="spinner"></div><div className="spinner-text">Loading module...</div></div>}>
       <Routes>
         <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
         <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <Register />} />
