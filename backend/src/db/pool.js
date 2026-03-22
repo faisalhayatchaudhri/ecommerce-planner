@@ -1,30 +1,43 @@
 /**
- * SQLite adapter that provides a pg-compatible pool.query() interface.
- * Translates PostgreSQL syntax (placeholders, types, date functions) to SQLite.
- * Uses better-sqlite3 which bundles SQLite 3.45+ (supports RETURNING clause).
+ * Hybrid DB Adapter
+ * Uses `pg` Pool if POSTGRES_URL or DATABASE_URL is available (e.g., Vercel Prod).
+ * Uses local `better-sqlite3` and SQL translation if disabled (Local Dev).
  */
+const { Pool } = require('pg');
 const Database = require('better-sqlite3');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const fs = require('fs');
 const { schema, alterStatements } = require('./schema');
 
+// --- POSTGRES CONFIG (Vercel Prod) ---
+const pgUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+let pgPool = null;
+let usePg = false;
+
+if (pgUrl) {
+  usePg = true;
+  pgPool = new Pool({
+    connectionString: pgUrl,
+    ssl: pgUrl.includes('localhost') ? false : { rejectUnauthorized: false }
+  });
+}
+
+// --- SQLITE CONFIG (Local Dev) ---
 const DB_DIR = process.env.VERCEL
   ? '/tmp/ecommerce-planner'
   : path.join(__dirname, '../../../data');
 const DB_PATH = path.join(DB_DIR, 'ecommerce.sqlite');
 
-if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
-
 let _db = null;
 let _schemaInitialized = false;
 
-function getDB() {
+function getDbSQLite() {
   if (!_db) {
+    if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
     _db = new Database(DB_PATH);
     _db.pragma('journal_mode = WAL');
     _db.pragma('foreign_keys = ON');
-    // Register gen_random_uuid() so any stray DDL references don't crash
     _db.function('gen_random_uuid', () => uuidv4());
   }
   return _db;
@@ -35,14 +48,36 @@ function shouldIgnoreAlterError(err) {
   return message.includes('duplicate column') || message.includes('already exists');
 }
 
-/**
- * Translate a PostgreSQL query + values to SQLite-compatible equivalents.
- * Returns { sql, values }.
- */
+async function initializePgSchema() {
+  try {
+    await pgPool.query(schema);
+    for (const alter of alterStatements) {
+      try {
+        await pgPool.query(alter);
+      } catch (err) {
+        if (!shouldIgnoreAlterError(err)) console.error('PG Alter Error:', err.message);
+      }
+    }
+  } catch (err) {
+    console.error('PG Schema Init Error:', err.message);
+  }
+}
+
+function initializeSqliteSchema(db) {
+  const translatedSchema = pgToSqlite(schema, []).sql;
+  db.exec(translatedSchema);
+  for (const alter of alterStatements) {
+    try {
+      const translatedAlter = pgToSqlite(alter, []).sql;
+      db.exec(translatedAlter);
+    } catch (err) {
+      if (!shouldIgnoreAlterError(err)) throw err;
+    }
+  }
+}
+
 function pgToSqlite(sql, pgValues = []) {
   let out = sql;
-
-  // --- DDL type translations ---
   out = out.replace(/\bTIMESTAMPTZ\b/gi, 'TEXT');
   out = out.replace(/\bDECIMAL\(\d+,\s*\d+\)/gi, 'REAL');
   out = out.replace(/\bVARCHAR\(\d+\)/gi, 'TEXT');
@@ -51,18 +86,11 @@ function pgToSqlite(sql, pgValues = []) {
   out = out.replace(/\bDEFAULT\s+FALSE\b/gi, 'DEFAULT 0');
   out = out.replace(/\bTEXT\[\]/g, 'TEXT');
   out = out.replace(/\bUUID\b/gi, 'TEXT');
-  // Remove gen_random_uuid() column defaults (injected in JS instead)
   out = out.replace(/DEFAULT\s+gen_random_uuid\(\)/gi, '');
-
-  // --- Function translations ---
-  // NOW() -> CURRENT_TIMESTAMP (works as DEFAULT and in DML SET clauses)
   out = out.replace(/\bNOW\(\)/gi, 'CURRENT_TIMESTAMP');
-  out = out.replace(/EXTRACT\s*\(\s*YEAR\s+FROM\s+([A-Za-z_][A-Za-z0-9_.".]*)\s*\)/gi,
-    "CAST(strftime('%Y', $1) AS INTEGER)");
-  out = out.replace(/TO_CHAR\s*\(\s*([A-Za-z_][A-Za-z0-9_.".]*)\s*,\s*'YYYY-MM'\s*\)/gi,
-    "strftime('%Y-%m', $1)");
+  out = out.replace(/EXTRACT\s*\(\s*YEAR\s+FROM\s+([A-Za-z_][A-Za-z0-9_.".]*)\s*\)/gi, "CAST(strftime('%Y', $1) AS INTEGER)");
+  out = out.replace(/TO_CHAR\s*\(\s*([A-Za-z_][A-Za-z0-9_.".]*)\s*,\s*'YYYY-MM'\s*\)/gi, "strftime('%Y-%m', $1)");
 
-  // --- Parameter placeholders: $1,$2,... -> ? (in order of appearance) ---
   const newValues = [];
   out = out.replace(/\$(\d+)/g, (_, n) => {
     const val = pgValues[parseInt(n, 10) - 1];
@@ -72,11 +100,9 @@ function pgToSqlite(sql, pgValues = []) {
     else newValues.push(val == null ? null : val);
     return '?';
   });
-
   return { sql: out, values: newValues };
 }
 
-/** Auto-inject a UUID id column for INSERTs that omit it */
 function injectUUID(sql, values) {
   const colsMatch = sql.match(/INSERT\s+INTO\s+(\w+)\s*\(([^)]+)\)/i);
   if (!colsMatch) return { sql, values };
@@ -86,31 +112,11 @@ function injectUUID(sql, values) {
 
   const tbl = colsMatch[1];
   const newSQL = sql
-    .replace(/INSERT\s+INTO\s+(\w+)\s*\(([^)]+)\)/i,
-      `INSERT INTO ${tbl} (id, ${originalColumns})`)
+    .replace(/INSERT\s+INTO\s+(\w+)\s*\(([^)]+)\)/i, `INSERT INTO ${tbl} (id, ${originalColumns})`)
     .replace(/VALUES\s*\(/, 'VALUES (?, ');
   return { sql: newSQL, values: [uuidv4(), ...values] };
 }
 
-function initializeSchema(db) {
-  if (_schemaInitialized) return;
-
-  const translatedSchema = pgToSqlite(schema, []).sql;
-  db.exec(translatedSchema);
-
-  for (const alter of alterStatements) {
-    try {
-      const translatedAlter = pgToSqlite(alter, []).sql;
-      db.exec(translatedAlter);
-    } catch (err) {
-      if (!shouldIgnoreAlterError(err)) throw err;
-    }
-  }
-
-  _schemaInitialized = true;
-}
-
-/** Decode a SQLite row back to JS-friendly types */
 function decodeRow(row) {
   if (!row) return row;
   const out = {};
@@ -126,13 +132,25 @@ function decodeRow(row) {
 
 const pool = {
   async query(sql, values = []) {
-    const db = getDB();
-    initializeSchema(db);
+    if (usePg) {
+      if (!_schemaInitialized) {
+        _schemaInitialized = true;
+        await initializePgSchema();
+      }
+      const pgRes = await pgPool.query(sql, values);
+      return { rows: pgRes.rows || [] }; 
+    }
+
+    // --- SQLite Path ---
+    const db = getDbSQLite();
+    if (!_schemaInitialized) {
+      _schemaInitialized = true;
+      initializeSqliteSchema(db);
+    }
     const upper = sql.trim().toUpperCase();
 
     // Multi-statement DDL (CREATE TABLE, CREATE INDEX, etc.)
-    if (/^\s*(CREATE|DROP|PRAGMA)/i.test(sql) ||
-        (upper.includes('CREATE TABLE') && sql.includes(';'))) {
+    if (/^\s*(CREATE|DROP|PRAGMA)/i.test(sql) || (upper.includes('CREATE TABLE') && sql.includes(';'))) {
       const { sql: ddl } = pgToSqlite(sql, []);
       db.exec(ddl);
       return { rows: [] };
@@ -175,14 +193,17 @@ const pool = {
   },
 
   async connect() {
-    return {
-      query: (sql, vals) => pool.query(sql, vals),
-      release: () => {}
-    };
+    if (usePg) return pgPool.connect();
+    return { query: (sql, vals) => pool.query(sql, vals), release: () => {} };
   },
 
-  async end() {},
-  on() {}
+  async end() {
+    if (usePg) return pgPool.end();
+  },
+  
+  on(event, listener) {
+    if (usePg) pgPool.on(event, listener);
+  }
 };
 
 module.exports = pool;
