@@ -4,11 +4,11 @@ import toast from 'react-hot-toast';
 import { Plus, TrendingUp } from 'lucide-react';
 import {
   Chart as ChartJS, CategoryScale, LinearScale, BarElement,
-  LineElement, PointElement, Tooltip, Legend
+  LineElement, PointElement, Tooltip, Legend, Filler
 } from 'chart.js';
 import { Bar, Line } from 'react-chartjs-2';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Tooltip, Legend, Filler);
 
 export default function Forecast() {
   const [forecasts, setForecasts] = useState([]);
