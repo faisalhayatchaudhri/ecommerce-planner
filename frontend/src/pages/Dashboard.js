@@ -59,9 +59,13 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([api.get('/analytics/kpis'), api.get('/profile')])
-      .then(([k, p]) => { setKpis(k.data); setProfile(p.data.profile); })
-      .catch(console.error)
+    document.title = 'Dashboard — EcomPlanner';
+    // allSettled: profile or kpis failure is non-fatal
+    Promise.allSettled([api.get('/analytics/kpis'), api.get('/profile')])
+      .then(([kpiResult, profileResult]) => {
+        if (kpiResult.status === 'fulfilled') setKpis(kpiResult.value.data);
+        if (profileResult.status === 'fulfilled') setProfile(profileResult.value.data.profile);
+      })
       .finally(() => setLoading(false));
   }, []);
 

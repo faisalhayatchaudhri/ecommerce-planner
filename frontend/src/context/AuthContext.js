@@ -1,43 +1,76 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import api from '../services/api';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api, { storage } from '../services/api';
 
 const AuthContext = createContext(null);
 
-const storage = {
-  get(key) {
-    try { return localStorage.getItem(key); } catch { return null; }
-  },
-  set(key, value) {
-    try { localStorage.setItem(key, value); } catch {}
-  },
-  remove(key) {
-    try { localStorage.removeItem(key); } catch {}
-  }
-};
+// ── Try to parse the cached user from localStorage ──────────
+function loadCachedUser() {
+  try { return JSON.parse(storage.get('user')); } catch { return null; }
+}
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    try { return JSON.parse(storage.get('user')); } catch { return null; }
-  });
-  const [loading, setLoading] = useState(true);
+  // Initialise user immediately from cache — eliminates first-render flicker.
+  // The /auth/me check below will correct this if the token is stale.
+  const [user, setUser] = useState(loadCachedUser);
+  // Start as true only if we have a token that needs server validation.
+  // If there's no token, we're immediately "done loading" — no spinner.
+  const [loading, setLoading] = useState(() => !!storage.get('token'));
+  const navigateRef = useRef(null);
 
+  // ── Expose a navigate ref that the event handler can use ──
+  // (We cannot call useNavigate outside a Router, so this is
+  //  resolved by App.js passing it via context once mounted.)
+  const setNavigate = useCallback((fn) => { navigateRef.current = fn; }, []);
+
+  // ── Validate the stored token once on mount ────────────────
   useEffect(() => {
     const token = storage.get('token');
-    if (token) {
-      api.get('/auth/me')
-        .then(res => setUser(res.data.user))
-        .catch(() => {
-          storage.remove('token');
-          storage.remove('user');
-          setUser(null);
-        })
-        .finally(() => setLoading(false));
-    } else {
+    if (!token) {
+      // No token at all — nothing to validate
       setUser(null);
       setLoading(false);
+      return;
     }
+
+    let cancelled = false;
+    api.get('/auth/me')
+      .then((res) => {
+        if (cancelled) return;
+        const freshUser = res.data.user;
+        storage.set('user', JSON.stringify(freshUser));
+        setUser(freshUser);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        // Token is invalid / expired — clean up
+        storage.remove('token');
+        storage.remove('user');
+        setUser(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, []); // ← runs only once; no repeated fetches on re-renders
+
+  // ── Listen for 401 events from the API interceptor ─────────
+  useEffect(() => {
+    const handle = () => {
+      setUser(null);
+      storage.remove('token');
+      storage.remove('user');
+      // Navigate via React Router (no full-page reload)
+      if (navigateRef.current) {
+        navigateRef.current('/login', { replace: true });
+      }
+    };
+    window.addEventListener('auth:unauthorized', handle);
+    return () => window.removeEventListener('auth:unauthorized', handle);
   }, []);
 
+  // ── Auth actions ────────────────────────────────────────────
   const login = async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
     storage.set('token', res.data.token);
@@ -54,19 +87,30 @@ export function AuthProvider({ children }) {
     return res.data.user;
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     storage.remove('token');
     storage.remove('user');
     setUser(null);
-  };
+  }, []);
+
+  // ── Profile update helper (used after onboarding) ──────────
+  const updateUser = useCallback((patch) => {
+    setUser((prev) => {
+      const updated = { ...prev, ...patch };
+      storage.set('user', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser, setNavigate }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
 export function useAuth() {
-  return useContext(AuthContext);
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>');
+  return ctx;
 }

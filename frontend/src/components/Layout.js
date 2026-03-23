@@ -68,7 +68,11 @@ export default function Layout() {
   useEffect(() => { if (isMobile) setSidebarOpen(false); }, [location.pathname, isMobile]);
 
   const currentLabel = useMemo(() => {
-    const match = ALL_NAV.find(item => location.pathname.startsWith(item.path));
+    // Exact match first, then prefix match (with trailing slash to avoid false positives)
+    const match = ALL_NAV.find(item =>
+      location.pathname === item.path ||
+      location.pathname.startsWith(item.path + '/')
+    );
     return match?.label || 'Dashboard';
   }, [location.pathname]);
 

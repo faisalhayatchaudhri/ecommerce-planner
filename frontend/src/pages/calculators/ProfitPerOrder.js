@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCurrencyCtx } from '../../context/CurrencyContext';
 import { ShoppingCart, Info } from 'lucide-react';
 
@@ -25,6 +25,7 @@ function Field({ label, tip, children }) {
 
 export default function ProfitPerOrder() {
   const { symbol, fmtDec } = useCurrencyCtx();
+  useEffect(() => { document.title = 'Profit Per Order — EcomPlanner'; }, []);
   const [price, setPrice] = useState(1000);
   const [cogs, setCogs] = useState(300);
   const [packaging, setPackaging] = useState(50);
@@ -59,16 +60,16 @@ export default function ProfitPerOrder() {
           <h3 style={{ fontWeight: 700, marginBottom: '1.25rem', color: '#f1f5f9', fontSize: '0.95rem' }}>Your Costs & Fees</h3>
           <div className="grid-2">
             <Field label={`Selling Price (${symbol})`} tip="The price the customer pays for your product.">
-              <input type="number" className="input" value={price} min="0" onChange={e => setPrice(Number(e.target.value))} />
+              <input type="number" className="input" value={price} min="0" onChange={e => setPrice(Math.max(0, Number(e.target.value)))} />
             </Field>
             <Field label={`Product Cost (${symbol})`} tip="How much you pay to manufacture or buy the product.">
-              <input type="number" className="input" value={cogs} min="0" onChange={e => setCogs(Number(e.target.value))} />
+              <input type="number" className="input" value={cogs} min="0" onChange={e => setCogs(Math.max(0, Number(e.target.value)))} />
             </Field>
             <Field label={`Packaging (${symbol})`} tip="Boxes, bags, tape, tissue paper etc. per order.">
-              <input type="number" className="input" value={packaging} min="0" onChange={e => setPackaging(Number(e.target.value))} />
+              <input type="number" className="input" value={packaging} min="0" onChange={e => setPackaging(Math.max(0, Number(e.target.value)))} />
             </Field>
             <Field label={`Shipping / Delivery (${symbol})`} tip="Courier charges to deliver the order.">
-              <input type="number" className="input" value={shipping} min="0" onChange={e => setShipping(Number(e.target.value))} />
+              <input type="number" className="input" value={shipping} min="0" onChange={e => setShipping(Math.max(0, Number(e.target.value)))} />
             </Field>
             <Field label="COD / Payment Fee (%)" tip="Cash on delivery fee or payment gateway fee, as % of selling price.">
               <input type="number" className="input" value={codFeePct} min="0" max="100" onChange={e => setCodFeePct(Number(e.target.value))} />

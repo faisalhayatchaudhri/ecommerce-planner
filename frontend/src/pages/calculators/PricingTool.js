@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCurrencyCtx } from '../../context/CurrencyContext';
-import { BarChart3, Info } from 'lucide-react';
+import { Tag, Info } from 'lucide-react';
 
 export default function PricingTool() {
-  const { symbol, fmtDec } = useCurrencyCtx();
+  const { symbol, currency, fmtDec } = useCurrencyCtx();
+  useEffect(() => { document.title = 'Pricing Tool — EcomPlanner'; }, []);
   const [cogs, setCogs] = useState(500);
   const [packaging, setPackaging] = useState(50);
   const [shipping, setShipping] = useState(150);
@@ -21,14 +22,16 @@ export default function PricingTool() {
 
   const isValid = denominator > 0;
 
-  const roundedPrice = Math.ceil(targetPrice / 50) * 50; // round up to nearest 50
+  // Currency-aware rounding: USD/EUR/GBP → nearest $5; others (PKR, INR etc.) → nearest 50
+  const roundStep = ['USD','EUR','GBP','CAD','AUD','SGD'].includes(currency) ? 5 : 50;
+  const roundedPrice = Math.ceil(targetPrice / roundStep) * roundStep;
 
   return (
     <div>
       <div className="page-header">
         <div>
           <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <BarChart3 size={26} color="#10b981" /> Pricing Tool
+            <Tag size={26} color="#10b981" /> Pricing Tool
           </h1>
           <p className="page-subtitle">What should I charge? Work backward from your target profit margin.</p>
         </div>
@@ -49,7 +52,7 @@ export default function PricingTool() {
                 <label className="label" style={{ margin: 0 }}>{f.label}</label>
                 <div className="tooltip-wrap"><div className="tooltip-icon">?</div><div className="tooltip-box">{f.tip}</div></div>
               </div>
-              <input type="number" className="input" value={f.val} min="0" onChange={e => f.set(Number(e.target.value))} />
+              <input type="number" className="input" value={f.val} min="0" onChange={e => f.set(Math.max(0, Number(e.target.value)))} />
             </div>
           ))}
 

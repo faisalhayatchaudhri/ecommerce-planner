@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCurrencyCtx } from '../../context/CurrencyContext';
 import { Package, Info } from 'lucide-react';
 
 export default function CodCalculator() {
   const { symbol, fmtDec } = useCurrencyCtx();
+  useEffect(() => { document.title = 'COD & Returns — EcomPlanner'; }, []);
   const [totalOrders, setTotalOrders] = useState(100);
   const [codPercentage, setCodPercentage] = useState(80);
   const [rtoRate, setRtoRate] = useState(15);
@@ -14,12 +15,14 @@ export default function CodCalculator() {
   const codOrders = totalOrders * (codPercentage / 100);
   const rtoCount = codOrders * (rtoRate / 100);
   const successfulDeliveries = totalOrders - rtoCount;
+  // Cost of lost shipping = forward + reverse shipping for every failed delivery
   const lostShippingCosts = rtoCount * (forwardShipping + reverseShipping);
   const grossProfit = successfulDeliveries * grossProfitPerOrder;
   const trueProfit = grossProfit - lostShippingCosts;
   const isPositive = trueProfit >= 0;
   const withoutRTO = totalOrders * grossProfitPerOrder;
-  const profitLoss = trueProfit - withoutRTO;
+  // rtoCostImpact is ALWAYS negative — it's a cost, not a gain
+  const rtoCostImpact = trueProfit - withoutRTO; // always <= 0
 
   return (
     <div>
@@ -37,19 +40,23 @@ export default function CodCalculator() {
           <h3 style={{ fontWeight: 700, marginBottom: '1.25rem', color: '#f1f5f9', fontSize: '0.95rem' }}>Order & Shipping Details</h3>
 
           {[
-            { label: 'Expected Total Orders per Month', tip: 'Total orders you expect to receive from all channels.', val: totalOrders, set: setTotalOrders, unit: 'orders' },
-            { label: 'COD Rate (%)', tip: 'What % of your orders are Cash on Delivery? In Pakistan, this is typically 70–95%.', val: codPercentage, set: setCodPercentage, unit: '%' },
-            { label: 'RTO Rate (%)', tip: 'Return to Origin — % of COD orders that are refused or undeliverable. Average in Pakistan is 15–30%.', val: rtoRate, set: setRtoRate, unit: '%' },
-            { label: `Gross Profit Per Delivered Order (${symbol})`, tip: 'Your profit when an order is successfully delivered (before shipping costs).', val: grossProfitPerOrder, set: setGrossProfitPerOrder },
-            { label: `Forward Shipping Cost (${symbol})`, tip: 'Courier fee to send the order to the customer.', val: forwardShipping, set: setForwardShipping },
-            { label: `Reverse Shipping Cost (${symbol})`, tip: 'Courier fee to return the failed package back to you.', val: reverseShipping, set: setReverseShipping },
+            { label: 'Expected Total Orders per Month', tip: 'Total orders you expect to receive from all channels.', val: totalOrders, set: setTotalOrders },
+            { label: 'COD Rate (%)', tip: 'What % of your orders are Cash on Delivery? In Pakistan, typically 70–95%. Enter 0 if you have no COD orders.', val: codPercentage, set: setCodPercentage, max: 100 },
+            { label: 'RTO Rate (%)', tip: 'Return to Origin — % of COD orders that fail. Pakistan average is 15–30%. Enter 0 if unsure.', val: rtoRate, set: setRtoRate, max: 100 },
+            { label: `Gross Profit Per Delivered Order (${symbol})`, tip: 'Profit per order BEFORE subtracting shipping. Use the Profit Per Order calculator to find this.', val: grossProfitPerOrder, set: setGrossProfitPerOrder },
+            { label: `Forward Shipping Cost (${symbol})`, tip: 'What the courier charges to deliver the order to the customer.', val: forwardShipping, set: setForwardShipping },
+            { label: `Reverse Shipping Cost (${symbol})`, tip: 'Courier charge to return the failed parcel back to you.', val: reverseShipping, set: setReverseShipping },
           ].map((field, idx) => (
             <div className="field" key={idx}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.35rem' }}>
                 <label className="label" style={{ margin: 0 }}>{field.label}</label>
                 <div className="tooltip-wrap"><div className="tooltip-icon">?</div><div className="tooltip-box">{field.tip}</div></div>
               </div>
-              <input type="number" className="input" value={field.val} min="0" onChange={e => field.set(Number(e.target.value))} />
+              <input
+                type="number" className="input"
+                value={field.val} min="0" max={field.max}
+                onChange={e => field.set(Math.max(0, Number(e.target.value)))}
+              />
             </div>
           ))}
         </div>
@@ -71,8 +78,8 @@ export default function CodCalculator() {
               { label: `RTO / Failed Deliveries (${rtoRate}% of COD)`, value: `${Math.round(rtoCount)} orders`, negative: true },
               { label: 'Successful Deliveries', value: `${Math.round(successfulDeliveries)} orders`, positive: true },
               { label: 'Gross Profit (successful)', value: fmtDec(grossProfit), positive: true },
-              { label: 'Loss from RTO Shipping', value: `- ${fmtDec(lostShippingCosts)}`, negative: true },
-              { label: 'Profit Impact from RTOs', value: fmtDec(profitLoss), negative: profitLoss < 0, positive: profitLoss >= 0 },
+              { label: 'Loss from RTO Shipping Costs', value: `- ${fmtDec(lostShippingCosts)}`, negative: true },
+              { label: 'RTO Cost Impact (vs zero-RTO)', value: `- ${fmtDec(Math.abs(rtoCostImpact))}`, negative: true },
               { label: 'True Net Profit', value: fmtDec(trueProfit), result: true },
             ].map((row, idx) => (
               <div key={idx} className="info-row">

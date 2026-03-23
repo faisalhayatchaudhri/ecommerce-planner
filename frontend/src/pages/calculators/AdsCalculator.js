@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCurrencyCtx } from '../../context/CurrencyContext';
 import { Zap, Info } from 'lucide-react';
 
 export default function AdsCalculator() {
   const { symbol, fmtDec } = useCurrencyCtx();
+  useEffect(() => { document.title = 'Ads Calculator — EcomPlanner'; }, []);
   const [adSpend, setAdSpend] = useState(50000);
   const [cpc, setCpc] = useState(25);
   const [conversionRate, setConversionRate] = useState(2);
   const [productMargin, setProductMargin] = useState(400);
+  const guardPos = (v) => Math.max(0, Number(v));
 
   const clicks = cpc > 0 ? adSpend / cpc : 0;
   const orders = clicks * (conversionRate / 100);

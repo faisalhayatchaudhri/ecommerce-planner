@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCurrencyCtx } from '../../context/CurrencyContext';
 import { DollarSign, Info } from 'lucide-react';
 
@@ -31,6 +31,7 @@ const ITEMS = [
 
 export default function StartupBudget() {
   const { symbol, fmt, fmtDec } = useCurrencyCtx();
+  useEffect(() => { document.title = 'Startup Budget — EcomPlanner'; }, []);
   const [vals, setVals] = useState({ stock:50000, website:15000, branding:5000, photography:8000, adsLaunch:20000, legal:5000, emergency:15000 });
   const set = (k, v) => setVals(prev => ({ ...prev, [k]: Number(v) }));
   const total = Object.values(vals).reduce((s, v) => s + v, 0);

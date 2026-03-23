@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCurrencyCtx } from '../../context/CurrencyContext';
 import { Target, Info } from 'lucide-react';
 
 export default function GoalCalculator() {
   const { symbol, fmtDec, fmt } = useCurrencyCtx();
+  useEffect(() => { document.title = 'Goal Planner — EcomPlanner'; }, []);
   const [targetIncome, setTargetIncome] = useState(100000);
   const [netProfitPerSale, setNetProfitPerSale] = useState(500);
   const [conversionRate, setConversionRate] = useState(2);
