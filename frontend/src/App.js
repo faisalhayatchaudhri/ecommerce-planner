@@ -5,15 +5,30 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { CurrencyProvider } from './context/CurrencyContext';
 
 function lazyWithRetry(importer) {
+  // Use a per-module key derived from the function source so different
+  // chunks each get their own retry flag. The flag is set before reload
+  // and cleared on successful load to prevent stale flags persisting.
+  const moduleKey = `lazy-retried-${importer.toString().replace(/\s/g, '').slice(0, 60)}`;
   return lazy(() =>
-    importer().catch((error) => {
-      const key = 'lazy-retried';
-      try {
-        const alreadyRetried = sessionStorage.getItem(key) === '1';
-        if (!alreadyRetried) { sessionStorage.setItem(key, '1'); window.location.reload(); }
-      } catch { window.location.reload(); }
-      throw error;
-    })
+    importer()
+      .then((mod) => {
+        // Clear the retry flag on success so future navigations work fine.
+        try { sessionStorage.removeItem(moduleKey); } catch {}
+        return mod;
+      })
+      .catch((error) => {
+        try {
+          const alreadyRetried = sessionStorage.getItem(moduleKey) === '1';
+          if (!alreadyRetried) {
+            sessionStorage.setItem(moduleKey, '1');
+            window.location.reload();
+          }
+          // If already retried, just throw — don't reload again.
+        } catch {
+          window.location.reload();
+        }
+        throw error;
+      })
   );
 }
 

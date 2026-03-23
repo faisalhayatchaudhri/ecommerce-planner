@@ -14,11 +14,13 @@ export default function TopLoader() {
   const location = useLocation();
   const [width, setWidth] = useState(0);
   const [visible, setVisible] = useState(false);
-  const timerRef = useRef(null);
+  // Store ALL intermediate timer IDs in an array so every one gets cleared.
+  const timersRef = useRef([]);
   const completeRef = useRef(null);
 
   const clear = () => {
-    clearTimeout(timerRef.current);
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
     clearTimeout(completeRef.current);
   };
 
@@ -31,10 +33,10 @@ export default function TopLoader() {
     requestAnimationFrame(() => {
       setWidth(30); // jump: route change felt immediately
 
-      // Slow trickle toward 85%
-      timerRef.current = setTimeout(() => setWidth(55), 120);
-      timerRef.current = setTimeout(() => setWidth(72), 280);
-      timerRef.current = setTimeout(() => setWidth(85), 450);
+      // Slow trickle toward 85% — push each ID so all can be cancelled.
+      timersRef.current.push(setTimeout(() => setWidth(55), 120));
+      timersRef.current.push(setTimeout(() => setWidth(72), 280));
+      timersRef.current.push(setTimeout(() => setWidth(85), 450));
     });
   };
 
